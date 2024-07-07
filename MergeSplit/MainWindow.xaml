@@ -22,15 +22,15 @@
 				<TextBlock Text="Move"/>
 			</GroupBox.Header>
 			<Canvas Height="98" Width="122" >
-				<Button Name="btnMoveFirst" Height="31" Width="49" TabIndex="1" Margin="61,48,668,328" HorizontalAlignment="Right" VerticalAlignment="Bottom" >First</Button>
-				<Button Name="btnMoveLast" Height="31" Width="49" TabIndex="1" Margin="6,48,723,328" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Last</Button>
-				<Button Name="btnMoveUp" Height="31" Width="49" TabIndex="1" Margin="61,11,668,365" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Up</Button>
-				<Button Name="btnMoveDown" Height="31" Width="49" TabIndex="1" Margin="6,11,723,365" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Down</Button>
+                <Button Name="btnMoveFirst" Command="{Binding MoveFirstCommand}" IsEnabled="{Binding CanMoveFirst}" Height="31" Width="49" TabIndex="1" Margin="61,48,668,328" HorizontalAlignment="Right" VerticalAlignment="Bottom" >First</Button>
+                <Button Name="btnMoveLast" Command="{Binding MoveLastCommand}" IsEnabled="{Binding CanMoveLast}"  Height="31" Width="49" TabIndex="1" Margin="6,48,723,328" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Last</Button>
+                <Button Name="btnMoveUp" Command="{Binding MoveUpCommand}" IsEnabled="{Binding CanMoveUp}"  Height="31" Width="49" TabIndex="1" Margin="61,11,668,365" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Up</Button>
+                <Button Name="btnMoveDown" Command="{Binding MoveDownCommand}" IsEnabled="{Binding CanMoveDown}" Height="31" Width="49" TabIndex="1" Margin="6,11,723,365" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Down</Button>
 			</Canvas>
 		</GroupBox>
-		<Button Name="btnRemove" Command="{Binding RemoveFilesCommand}"  IsEnabled="{Binding CanRemoveFiles}" Height="31" Width="104" TabIndex="1" IsTabStop="False" Margin="0,0,22,132" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Remove</Button>
-		<Button Name="btnClear" Height="31" Width="104" TabIndex="1" IsTabStop="False" Margin="0,0,22,95" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Clear All</Button>
-		<Button Name="btnMerge" Height="60" Width="104" TabIndex="1" IsTabStop="False" Margin="0,0,22,26" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Merge</Button>
+		<Button Name="btnRemove" Command="{Binding RemoveFilesCommand}" IsEnabled="{Binding CanRemoveFiles}" Height="31" Width="104" TabIndex="1" IsTabStop="False" Margin="0,0,22,132" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Remove</Button>
+        <Button Name="btnClear" Command="{Binding ClearListCommand}" IsEnabled="{Binding CanClearList}" Height="31" Width="104" TabIndex="1" IsTabStop="False" Margin="0,0,22,95" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Clear All</Button>
+        <Button Name="btnMerge" Command="{Binding MergeDocuments}" IsEnabled="{Binding CanMergeDocuments}" Height="60" Width="104" TabIndex="1" IsTabStop="False" Margin="0,0,22,26" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Merge</Button>
         <ListView Name="lvFiles"  ItemsSource="{Binding Files}" Height="273" Width="607" Margin="3,10,168,124" HorizontalAlignment="Right" VerticalAlignment="Bottom" SelectionMode="Extended" SelectionChanged="ListView_SelectionChanged">
             <ListView.View >
 				<GridView >
@@ -45,9 +45,9 @@
 				<TextBlock Text="Options"/>
 			</GroupBox.Header>
 			<Canvas Height="45" Width="592" >
-				<CheckBox Name="chkAcceptRevisions" Height="17" Width="198" TabIndex="2" HorizontalAlignment="Left" VerticalAlignment="Center" Checked="chkAcceptRevisions_Checked" Canvas.Left="298" Canvas.Top="13" >Accept Revisions While Merging</CheckBox>
+                <CheckBox Name="chkAcceptRevisions"  IsChecked="{Binding MergeModel.AcceptRevisions}" Height="17" Width="198" TabIndex="2" HorizontalAlignment="Left" VerticalAlignment="Center" Canvas.Left="298" Canvas.Top="13" >Accept Revisions While Merging</CheckBox>
 				<Label Name="lblOptions" Height="22" Width="129" FontSize="11" FontFamily="Microsoft Sans Serif" TabIndex="1" Margin="19,12,630,373" HorizontalAlignment="Right" VerticalAlignment="Bottom" >Select the Break Option</Label>
-				<ComboBox Name="cbBreakOptions" Height="21" Width="122" TabIndex="0" Foreground="Navy" HorizontalAlignment="Left" VerticalAlignment="Center" SelectionChanged="cbBreakOptions_SelectionChanged" Canvas.Left="150" Canvas.Top="10" >
+                <ComboBox Name="cbBreakOptions" SelectedIndex="{Binding MergeModel.BreakOptionsIndex}" Height="21" Width="122" TabIndex="0" Foreground="Navy" HorizontalAlignment="Left" VerticalAlignment="Center" Canvas.Left="150" Canvas.Top="10" >
 					<ComboBoxItem>Section Break</ComboBoxItem>
 					<ComboBoxItem>Page Break</ComboBoxItem>
 					<ComboBoxItem>Line Break</ComboBoxItem>
