@@ -1,6 +1,8 @@
 ﻿using MergeSplit.ViewModels;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace MergeSplit
 {
@@ -21,16 +23,6 @@ namespace MergeSplit
                 viewModel.SelectionChanged(lvFiles.SelectedItems);
             }
         }
-
-        private void chkAcceptRevisions_Checked(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void cbBreakOptions_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
-        }
+        
     }
-    
 }

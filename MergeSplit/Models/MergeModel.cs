@@ -9,7 +9,7 @@ namespace MergeSplit.Models
 {
     internal class MergeModel
     {
-        public ObservableCollection<FileDetails> MergeFiles { get; set; }
+        public List<FileDetails> FileInfos { get; set; }
         public bool AcceptRevisions { get; set; }
         public int BreakOptionsIndex { get; set; }
     }

@@ -3,14 +3,15 @@ using Microsoft.Office.Interop.Word;
 using Microsoft.Win32;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Data;
+using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace MergeSplit.ViewModels
@@ -37,6 +38,22 @@ namespace MergeSplit.ViewModels
                 OnPropertyChanged();
             }
         }
+        private bool _isProgressBarVisible;
+        public bool IsProgressBarVisible
+        {
+            get { return _isProgressBarVisible; }
+            set
+            {
+                if (_isProgressBarVisible != value)
+                {
+                    _isProgressBarVisible = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public int ProgressBarValue { get; private set; }
+
         private ObservableCollection<FileDetails> _selectedFiles;
         public ObservableCollection<FileDetails> SelectedFiles
         {
@@ -54,23 +71,25 @@ namespace MergeSplit.ViewModels
             }
         }
         public ICommand AddFilesCommand { get; }
+
         public ICommand RemoveFilesCommand { get; }
+        public ICommand AddFolderCommand { get; private set; }
         public ICommand SelectionChangedCommand { get; }
         public ICommand MoveFirstCommand { get; }
         public ICommand MoveLastCommand { get; }
         public ICommand MoveUpCommand { get; }
         public ICommand MoveDownCommand { get; }
         public ICommand ClearListCommand { get; }
-        public ICommand MergeCommand { get; }
         public MainViewModel()
         {
             
             MergeModel = new MergeModel();
 
             Files = new ObservableCollection<FileDetails>();
-                
+            
             SelectedFiles = new ObservableCollection<FileDetails>();
             AddFilesCommand = new RelayCommand(param => AddFiles());
+            AddFolderCommand = new RelayCommand(param => AddFolder());
             RemoveFilesCommand = new RelayCommand(param => RemoveFiles(), param => CanRemoveFiles());
             SelectionChangedCommand = new RelayCommand(param => SelectionChanged(param));
             MoveFirstCommand = new RelayCommand(param => MoveFirst(), param => CanMoveFirst());
@@ -78,11 +97,10 @@ namespace MergeSplit.ViewModels
             MoveUpCommand = new RelayCommand(param => MoveUp(), param => CanMoveUp());
             MoveDownCommand = new RelayCommand(param => MoveDown(), param => CanMoveDown());
             ClearListCommand = new RelayCommand(param => ClearList(), param => CanClearList());
-            MergeCommand = new RelayCommand(param => MergeDocuments(), param => CanMergeDocuments());
         }
         private void AddFiles()
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Multiselect = true,
                 Filter = "Word Documents|*.doc;*.docx"
@@ -100,10 +118,54 @@ namespace MergeSplit.ViewModels
                     {
                         FileName = fileInfo.Name,
                         FileFullName = fileInfo.FullName,
-                        LastModified = fileInfo.LastWriteTime
+                        LastModified = fileInfo.LastWriteTime.ToString()
                     });
                 }
             }
+            
+        }
+        private void AddFolder()
+        {
+            var folderBrowserDialog = new FolderBrowserDialog();
+
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            {
+                string folderPath = folderBrowserDialog.SelectedPath;
+                AddFilesFromFolder(folderPath);
+                SortListViewByFileName();
+            }
+        }
+        private void AddFilesFromFolder(string folderPath)
+        {
+            string[] filesInFolder = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
+                .Where(file => !Path.GetFileName(file).StartsWith("~"))
+                .ToArray();
+
+            foreach (string filePath in filesInFolder)
+            {
+                FileInfo fileInfo = new FileInfo(filePath);
+
+                if (!IsFileExtensionValid(fileInfo.Extension))
+                    continue;
+
+                FileDetails file = new FileDetails
+                {
+                    FileName = fileInfo.Name,
+                    FileFullName = fileInfo.FullName,
+                    LastModified = fileInfo.LastWriteTime.ToString()
+                };
+
+                Files.Add(file);
+            }
+        }
+        private bool IsFileExtensionValid(string fileExtension)
+        {
+            string[] validExtensions = { ".doc", ".docx" };
+            return validExtensions.Contains(fileExtension.ToLower());
+        }
+        private void SortListViewByFileName()
+        {
+            Files = new ObservableCollection<FileDetails>(Files.OrderBy(f => f.FileName));
         }
         private void MoveFirst()
         {
@@ -182,82 +244,7 @@ namespace MergeSplit.ViewModels
             Files.Clear();
             SelectedFiles.Clear();
         }
-        private void MergeDocuments()
-        {
-            Microsoft.Office.Interop.Word.Application wordApp = null;
-            Document mergedDoc = null;
-
-            try
-            {
-                wordApp = new Microsoft.Office.Interop.Word.Application();
-                // Create a new document to merge into
-                mergedDoc = wordApp.Documents.Add();
-
-                foreach (var file in MergeModel.MergeFiles)
-                {
-                    if (File.Exists(file.FileFullName))
-                    {
-                        // Open each document from the list
-                        Document docToMerge = wordApp.Documents.Open(file.FileFullName);
-
-                        // Merge the documents
-                        if (mergedDoc != null)
-                        {
-                            if (MergeModel.AcceptRevisions)
-                            {
-                                // Accept all revisions in the document to be merged
-                                docToMerge.Revisions.AcceptAll();
-                            }
-
-                            // Copy content from docToMerge to mergedDoc
-                            Range rangeToCopy = docToMerge.Content;
-                            rangeToCopy.Copy();
-                            Range rangeToPaste = mergedDoc.Content;
-                            rangeToPaste.Collapse(WdCollapseDirection.wdCollapseEnd);
-
-                            // Apply break options if specified
-                            switch (MergeModel.BreakOptionsIndex)
-                            {
-                                case 1: // Section Break
-                                    rangeToPaste.InsertBreak(WdBreakType.wdSectionBreakNextPage);
-                                    break;
-                                case 2: // Page Break
-                                    rangeToPaste.InsertBreak(WdBreakType.wdPageBreak); 
-                                    break;
-                                default: // None or default
-                                    break;
-                            }
-
-                            // Paste the copied content
-                            rangeToPaste.Paste();
-                        }
-
-                        // Close the document without saving changes
-                        docToMerge.Close(WdSaveOptions.wdDoNotSaveChanges);
-                    }
-                }
-
-                // Show the merged document
-                wordApp.Visible = true;
-            }
-            catch (Exception ex)
-            {
-                // Handle exceptions
-                MessageBox.Show($"Error merging documents: {ex.Message}");
-            }
-            finally
-            {
-                // Clean up resources
-                if (mergedDoc != null) Marshal.ReleaseComObject(mergedDoc);
-                if (wordApp != null) Marshal.ReleaseComObject(wordApp);
-            }
-        }
-
-        public bool CanMergeDocuments()
-        {
-            return MergeModel.MergeFiles.Count > 0;
-        }
-        private bool CanRemoveFiles()
+                private bool CanRemoveFiles()
         {
             return SelectedFiles.Count > 0;
         }
