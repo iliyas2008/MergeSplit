@@ -1,5 +1,4 @@
 ﻿using MergeSplit.Models;
-using MergeSplit.Views;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,33 +6,26 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Windows.Forms;
 using System.Windows.Input;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using Word = Microsoft.Office.Interop.Word;
 using DocumentFormat.OpenXml;
 using Paragraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using Run = DocumentFormat.OpenXml.Wordprocessing.Run;
 using Body = DocumentFormat.OpenXml.Wordprocessing.Body;
 using Document = DocumentFormat.OpenXml.Wordprocessing.Document;
 using Break = DocumentFormat.OpenXml.Wordprocessing.Break;
-using System.Text;
-using DocumentFormat.OpenXml.Drawing.Charts;
 using Style = DocumentFormat.OpenXml.Wordprocessing.Style;
-using System.Windows.Documents;
-using DocumentFormat.OpenXml.Office.Word;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
+using Endnote = DocumentFormat.OpenXml.Wordprocessing.Endnote;
+using Footnote = DocumentFormat.OpenXml.Wordprocessing.Footnote;
+using Comment = DocumentFormat.OpenXml.Wordprocessing.Comment;
+using MessageBox = System.Windows.MessageBox;
 
 namespace MergeSplit.ViewModels
 {
     internal class MainViewModel : INotifyPropertyChanged
     {
-        private Word.Application wordApp;
-        private string password; 
         private ObservableCollection<FileDetails> _files;
         public ObservableCollection<FileDetails> Files
         {
@@ -54,22 +46,6 @@ namespace MergeSplit.ViewModels
                 OnPropertyChanged();
             }
         }
-        private bool _isProgressBarVisible;
-        public bool IsProgressBarVisible
-        {
-            get { return _isProgressBarVisible; }
-            set
-            {
-                if (_isProgressBarVisible != value)
-                {
-                    _isProgressBarVisible = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public int ProgressBarValue { get; private set; }
-
         private ObservableCollection<FileDetails> _selectedFiles;
         public ObservableCollection<FileDetails> SelectedFiles
         {
@@ -225,7 +201,7 @@ namespace MergeSplit.ViewModels
                     mainPart.Document.Save();
                 }
 
-                SaveFileDialog saveFileDialog = new SaveFileDialog
+                System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog
                 {
                     Filter = "Word Document (*.docx)|*.docx",
                     Title = "Save Merged File to:",
@@ -357,10 +333,10 @@ namespace MergeSplit.ViewModels
             var mainPart = document.MainDocumentPart;
             var body = mainPart.Document.Body;
 
-            // Revert revisions in the main document
+            // Accept revisions in the main document
             AcceptRevisionsInElement(body);
 
-            // Revert revisions in headers and footers
+            // Accept revisions in headers and footers
             foreach (var headerPart in mainPart.HeaderParts)
             {
                 AcceptRevisionsInElement(headerPart.Header);
@@ -371,7 +347,7 @@ namespace MergeSplit.ViewModels
                 AcceptRevisionsInElement(footerPart.Footer);
             }
 
-            // Revert revisions in footnotes
+            // Accept revisions in footnotes
             var footnotesPart = mainPart.FootnotesPart;
             if (footnotesPart != null)
             {
@@ -381,7 +357,7 @@ namespace MergeSplit.ViewModels
                 }
             }
 
-            // Revert revisions in endnotes
+            // Accept revisions in endnotes
             var endnotesPart = mainPart.EndnotesPart;
             if (endnotesPart != null)
             {
@@ -456,125 +432,6 @@ namespace MergeSplit.ViewModels
             }
         }
 
-        
-        private bool IsDocumentProtected(Word.Application wordApp, string filePath)
-        {
-            bool isProtected = false;
-            Word.Document doc = null;
-
-            try
-            {
-                doc = wordApp.Documents.Open(wordApp, filePath);
-                isProtected = doc.ProtectionType != Word.WdProtectionType.wdNoProtection;
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show($"Error checking document protection: {ex.Message}");
-            }
-            finally
-            {
-                doc.Close(Word.WdSaveOptions.wdDoNotSaveChanges);
-                Marshal.ReleaseComObject(doc);
-            }
-
-            return isProtected;
-        }
-
-        private string GetPasswordForProtectedDocument(string filePath)
-        {
-            var passwordDialog = new PasswordDialog
-            {
-                DataContext = new PasswordDialogViewModel()
-            };
-
-            if (passwordDialog.ShowDialog() == true)
-            {
-                var viewModel = (PasswordDialogViewModel)passwordDialog.DataContext;
-                return viewModel.Password;
-            }
-            else
-            {
-                return string.Empty;
-            }
-        }
-
-        private Word.Document OpenDocument(Word.Application wordApp, string filePath, string password = null)
-        {
-            object missing = Type.Missing;
-            object readOnly = false;
-            object isVisible = true;
-            object confirmConversions = false;
-            object addToRecentFiles = false;
-            object passwordObj = password;
-            object noEncodingDialog = true;
-
-            try
-            {
-                if (password == null)
-                {
-                    return wordApp.Documents.Open(filePath, ref confirmConversions, ref readOnly, ref addToRecentFiles,
-                        ref missing, ref missing, ref missing, ref missing, ref missing, ref missing,
-                        ref missing, ref isVisible, ref missing, ref missing, ref noEncodingDialog, ref missing);
-                }
-                else
-                {
-                    return wordApp.Documents.Open(filePath, ref confirmConversions, ref readOnly, ref addToRecentFiles,
-                        ref passwordObj, ref missing, ref missing, ref missing, ref missing, ref missing,
-                        ref missing, ref isVisible, ref missing, ref missing, ref noEncodingDialog, ref missing);
-                }
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private Word.Document MergeDocuments(Word.Application wordApp, List<Word.Document> documents, Word.WdBreakType breakType, bool acceptRevisions)
-        {
-            if (documents.Count == 0) return null;
-
-            try
-            {
-                Word.Document firstDoc = documents[0];
-                documents.RemoveAt(0);
-
-                firstDoc.Activate();
-                if (IsDocumentProtected(wordApp, firstDoc.FullName))
-                {
-                    firstDoc.Unprotect(password);
-                }
-
-                firstDoc.TrackRevisions = false;
-
-                foreach (var doc in documents)
-                {
-                    doc.TrackRevisions = false;
-                    Word.Range sourceRange = doc.Content;
-                    Word.Range targetRange = firstDoc.Content;
-                    sourceRange.Copy();
-                    targetRange.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
-                    targetRange.Paste();
-
-                    if (documents.IndexOf(doc) != documents.Count - 1)
-                    {
-                        targetRange.InsertBreak(breakType);
-                    }
-
-                    doc.Close(false);
-                }
-
-                if (acceptRevisions)
-                {
-                    firstDoc.AcceptAllRevisions();
-                }
-
-                return firstDoc;
-            }
-            catch
-            {
-                return null;
-            }
-        }
 
         private void AddFiles()
         {

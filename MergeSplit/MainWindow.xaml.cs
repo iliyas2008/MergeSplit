@@ -1,8 +1,10 @@
-﻿using MergeSplit.ViewModels;
-using System.ComponentModel;
+﻿using MergeSplit.Models;
+using MergeSplit.ViewModels;
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 
 namespace MergeSplit
 {
@@ -11,26 +13,34 @@ namespace MergeSplit
     /// </summary>
     public partial class MainWindow : Window
     {
+        private MainViewModel _viewModel; 
+        public ObservableCollection<FileDetails> Files { get; set; }
         public MainWindow()
         {
             InitializeComponent();
+            _viewModel = new MainViewModel();
+            DataContext = _viewModel;
         }
         private void GridViewColumnHeader_Click(object sender, RoutedEventArgs e)
         {
-            GridViewColumnHeader headerClicked = e.OriginalSource as GridViewColumnHeader;
+            var headerClicked = e.OriginalSource as GridViewColumnHeader;
             if (headerClicked != null)
             {
-                int columnIndex = (int)headerClicked.CommandParameter;
-                new AlphanumericComparer(columnIndex);
-
+                int columnIndex = Convert.ToInt32(headerClicked.Tag);
+                Sort(columnIndex);
             }
+        }
+        private void Sort(int columnIndex)
+        {
+            var sortedFiles = _viewModel.Files.ToList();
+            sortedFiles.Sort(new AlphanumericComparer(columnIndex));
+            _viewModel.Files = new ObservableCollection<FileDetails>(sortedFiles);
         }
         public void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var viewModel = DataContext as MainViewModel;
-            if (viewModel != null)
+            if (_viewModel != null)
             {
-                viewModel.SelectionChanged(lvFiles.SelectedItems);
+                _viewModel.SelectionChanged(lvFiles.SelectedItems);
             }
         }
         

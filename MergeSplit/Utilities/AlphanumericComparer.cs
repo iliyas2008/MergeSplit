@@ -3,6 +3,7 @@ using System;
 using MergeSplit.Models;
 using System.Collections.Generic;
 using System.Linq;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace MergeSplit.ViewModels
 {
@@ -17,9 +18,13 @@ namespace MergeSplit.ViewModels
 
         public int Compare(FileDetails x, FileDetails y)
         {
-            string nameX = x.FileName; // Adjust based on the property you want to sort by
-            string nameY = y.FileName; // Adjust based on the property you want to sort by
+            var nameX = x.FileName; // Adjust based on the property you want to sort by
+            var nameY = y.FileName; // Adjust based on the property you want to sort by
 
+            if (columnIndex == 1)
+            {
+                return x.LastModified.CompareTo(y.LastModified);
+            }
             return AlphanumericCompare(nameX, nameY);
         }
 

@@ -40,7 +40,7 @@
                         <GridViewColumn.HeaderContainerStyle>
                             <Style TargetType="GridViewColumnHeader">
                                 <EventSetter Event="Click" Handler="GridViewColumnHeader_Click"/>
-                                <Setter Property="CommandParameter" Value="0"/>
+                                <Setter Property="Tag" Value="0"/>
                             </Style>
                         </GridViewColumn.HeaderContainerStyle>
                     </GridViewColumn>
@@ -48,27 +48,14 @@
                         <GridViewColumn.HeaderContainerStyle>
                             <Style TargetType="GridViewColumnHeader">
                                 <EventSetter Event="Click" Handler="GridViewColumnHeader_Click"/>
-                                <Setter Property="CommandParameter" Value="1"/>
+                                <Setter Property="Tag" Value="1"/>
                             </Style>
                         </GridViewColumn.HeaderContainerStyle>
                     </GridViewColumn>
-                    <GridViewColumn Header="Path" DisplayMemberBinding="{Binding FileFullName}" Width="275">
-                        <GridViewColumn.HeaderContainerStyle>
-                            <Style TargetType="GridViewColumnHeader">
-                                <EventSetter Event="Click" Handler="GridViewColumnHeader_Click"/>
-                                <Setter Property="CommandParameter" Value="2"/>
-                            </Style>
-                        </GridViewColumn.HeaderContainerStyle>
-                    </GridViewColumn>
+                    <GridViewColumn Header="Path" DisplayMemberBinding="{Binding FileFullName}" Width="275" />
                 </GridView>
             </ListView.View>
         </ListView>
-        <ProgressBar Visibility="Visible"
-             Value="0"
-             Minimum="0"
-             Maximum="100"
-             Height="20"
-             Margin="4,297,168,90"/>
         <GroupBox Margin="0,0,170,17" HorizontalAlignment="Right" VerticalAlignment="Bottom" >
             <GroupBox.Header>
                 <TextBlock Text="Options"/>
