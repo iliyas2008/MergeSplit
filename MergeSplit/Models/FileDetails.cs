@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MergeSplit.Models
 {
-    class FileDetails : INotifyPropertyChanged
+    public class FileDetails : INotifyPropertyChanged
     {
         private string fileName;
         public string FileName

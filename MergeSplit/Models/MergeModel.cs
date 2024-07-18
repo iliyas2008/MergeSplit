@@ -1,16 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace MergeSplit.Models
 {
-    internal class MergeModel
+    public class MergeModel : INotifyPropertyChanged
     {
-        public List<FileDetails> FileInfos { get; set; }
-        public bool AcceptRevisions { get; set; }
-        public int BreakOptionsIndex { get; set; }
+        private ObservableCollection<FileDetails> fileInfos;
+        private bool acceptRevisions;
+        private int breakOptionsIndex;
+
+        public ObservableCollection<FileDetails> FileInfos
+        {
+            get => fileInfos;
+            set
+            {
+                fileInfos = value;
+                OnPropertyChanged(nameof(FileInfos));
+            }
+        }
+
+        public bool AcceptRevisions
+        {
+            get => acceptRevisions;
+            set
+            {
+                acceptRevisions = value;
+                OnPropertyChanged(nameof(AcceptRevisions));
+            }
+        }
+
+        public int BreakOptionsIndex
+        {
+            get => breakOptionsIndex;
+            set
+            {
+                breakOptionsIndex = value;
+                OnPropertyChanged(nameof(BreakOptionsIndex));
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

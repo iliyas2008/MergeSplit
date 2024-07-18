@@ -15,7 +15,17 @@ namespace MergeSplit
         {
             InitializeComponent();
         }
-        public void ListView_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void GridViewColumnHeader_Click(object sender, RoutedEventArgs e)
+        {
+            GridViewColumnHeader headerClicked = e.OriginalSource as GridViewColumnHeader;
+            if (headerClicked != null)
+            {
+                int columnIndex = (int)headerClicked.CommandParameter;
+                new AlphanumericComparer(columnIndex);
+
+            }
+        }
+        public void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var viewModel = DataContext as MainViewModel;
             if (viewModel != null)
