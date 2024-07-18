@@ -1,5 +1,4 @@
 ﻿using MergeSplit.Models;
-using MergeSplit.Views;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,9 +6,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Windows.Forms;
 using System.Windows.Input;
 using DocumentFormat.OpenXml.Packaging;
@@ -21,12 +17,7 @@ using Run = DocumentFormat.OpenXml.Wordprocessing.Run;
 using Body = DocumentFormat.OpenXml.Wordprocessing.Body;
 using Document = DocumentFormat.OpenXml.Wordprocessing.Document;
 using Break = DocumentFormat.OpenXml.Wordprocessing.Break;
-using System.Text;
-using DocumentFormat.OpenXml.Drawing.Charts;
 using Style = DocumentFormat.OpenXml.Wordprocessing.Style;
-using System.Windows.Documents;
-using DocumentFormat.OpenXml.Office.Word;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace MergeSplit.ViewModels
 {
@@ -454,30 +445,6 @@ namespace MergeSplit.ViewModels
                 insertion.RemoveAttribute("rsidRPr", "https://schemas.openxmlformats.org/wordprocessingml/2006/main");
                 insertion.Remove();
             }
-        }
-
-        
-        private bool IsDocumentProtected(Word.Application wordApp, string filePath)
-        {
-            bool isProtected = false;
-            Word.Document doc = null;
-
-            try
-            {
-                doc = wordApp.Documents.Open(wordApp, filePath);
-                isProtected = doc.ProtectionType != Word.WdProtectionType.wdNoProtection;
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show($"Error checking document protection: {ex.Message}");
-            }
-            finally
-            {
-                doc.Close(Word.WdSaveOptions.wdDoNotSaveChanges);
-                Marshal.ReleaseComObject(doc);
-            }
-
-            return isProtected;
         }
 
         private void AddFiles()
