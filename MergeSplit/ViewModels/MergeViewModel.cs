@@ -24,7 +24,7 @@ using MessageBox = System.Windows.MessageBox;
 
 namespace MergeSplit.ViewModels
 {
-    internal class MainViewModel : INotifyPropertyChanged
+    internal class MergeViewModel : INotifyPropertyChanged
     {
         private ObservableCollection<FileDetails> _files;
         public ObservableCollection<FileDetails> Files
@@ -74,7 +74,7 @@ namespace MergeSplit.ViewModels
         public ICommand MoveDownCommand { get; }
         public ICommand ClearListCommand { get; }
         public ICommand MergeCommand { get; }
-        public MainViewModel()
+        public MergeViewModel()
         {
             Files = new ObservableCollection<FileDetails>();
             MergeModel = new MergeModel

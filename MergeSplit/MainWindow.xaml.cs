@@ -1,48 +1,48 @@
-﻿using MergeSplit.Models;
-using MergeSplit.ViewModels;
-using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
 namespace MergeSplit
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        private MainViewModel _viewModel; 
-        public ObservableCollection<FileDetails> Files { get; set; }
+        private bool canNavigate = true;
         public MainWindow()
         {
             InitializeComponent();
-            _viewModel = new MainViewModel();
-            DataContext = _viewModel;
+            MainTabControl.SelectionChanged += MainTabControl_SelectionChanged;
+            Tab1Frame.Navigating += Tab1Frame_Navigating;
         }
-        private void GridViewColumnHeader_Click(object sender, RoutedEventArgs e)
+        private void MainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            var headerClicked = e.OriginalSource as GridViewColumnHeader;
-            if (headerClicked != null)
+            if (MainTabControl.SelectedIndex == 0) // Tab 1 selected
             {
-                int columnIndex = Convert.ToInt32(headerClicked.Tag);
-                Sort(columnIndex);
+                // Create an instance of MergeUserControl and set it as the content of Tab1ContentControl
+                Tab1Frame.Navigate(new MergeWindow());
+            }
+            else
+            {
+                // Clear content if Tab 1 is not selected
+                Tab1Frame.Content = null;
             }
         }
-        private void Sort(int columnIndex)
+        private void Tab1Frame_Navigating(object sender, System.Windows.Navigation.NavigatingCancelEventArgs e)
         {
-            var sortedFiles = _viewModel.Files.ToList();
-            sortedFiles.Sort(new AlphanumericComparer(columnIndex));
-            _viewModel.Files = new ObservableCollection<FileDetails>(sortedFiles);
+            if (!canNavigate)
+            {
+                e.Cancel = true;
+            }
         }
+
         public void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_viewModel != null)
-            {
-                _viewModel.SelectionChanged(lvFiles.SelectedItems);
-            }
+            // Disable navigation to new pages
+            canNavigate = false;
         }
-        
+
+        public void EnableNavigation()
+        {
+            // Enable navigation to new pages
+            canNavigate = true;
+        }
     }
 }
