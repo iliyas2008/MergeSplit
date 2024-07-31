@@ -17,7 +17,6 @@ namespace MergeSplit
         public ObservableCollection<FileDetails> Files { get; set; }
         public MergeWindow()
         {
-            InitializeComponent();
             _viewModel = new MergeViewModel();
             DataContext = _viewModel;
         }
