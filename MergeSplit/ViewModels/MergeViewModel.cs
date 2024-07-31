@@ -24,18 +24,10 @@ using MessageBox = System.Windows.MessageBox;
 
 namespace MergeSplit.ViewModels
 {
-    internal class MergeViewModel : INotifyPropertyChanged
+    public class MergeViewModel : ViewModelBase
     {
         private ObservableCollection<FileDetails> _files;
-        public ObservableCollection<FileDetails> Files
-        {
-            get { return _files; }
-            set
-            {
-                _files = value;
-                OnPropertyChanged();
-            }
-        }
+        
         private MergeModel _mergeModel;
         public MergeModel MergeModel
         {
@@ -49,19 +41,13 @@ namespace MergeSplit.ViewModels
         private ObservableCollection<FileDetails> _selectedFiles;
         public ObservableCollection<FileDetails> SelectedFiles
         {
-            get { return _selectedFiles; }
-            set
-            {
-                _selectedFiles = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CanRemoveFiles));
-                OnPropertyChanged(nameof(CanMoveFirst));
-                OnPropertyChanged(nameof(CanMoveLast));
-                OnPropertyChanged(nameof(CanMoveUp));
-                OnPropertyChanged(nameof(CanMoveDown));
-                OnPropertyChanged(nameof(CanClearList));
-
-            }
+            get => _selectedFiles;
+            set => SetProperty(ref _selectedFiles, value);
+        }
+        public ObservableCollection<FileDetails> Files
+        {
+            get => _files;
+            set => SetProperty(ref _files, value);
         }
         public ICommand AddFilesCommand { get; }
 
@@ -508,6 +494,18 @@ namespace MergeSplit.ViewModels
                 Files.Add(file);
             }
         }
+        public void SelectionChanged(object parameter)
+        {
+            SelectedFiles.Clear();
+
+            if (parameter is IList selectedItems)
+            {
+                foreach (FileDetails file in selectedItems)
+                {
+                    SelectedFiles.Add(file);
+                }
+            }
+        }
         private void MoveFirst()
         {
             var itemsToMove = SelectedFiles.ToList();
@@ -568,18 +566,6 @@ namespace MergeSplit.ViewModels
             }
             SelectedFiles.Clear();
         }
-        public void SelectionChanged(object parameter)
-        {
-            SelectedFiles.Clear();
-
-            if (parameter is IList selectedItems)
-            {
-                foreach (FileDetails file in selectedItems)
-                {
-                    SelectedFiles.Add(file);
-                }
-            }
-        }
         private void ClearList()
         {
             Files.Clear();
@@ -592,11 +578,6 @@ namespace MergeSplit.ViewModels
         private bool CanMoveUp() { return SelectedFiles.Count > 0 && SelectedFiles.Any(file => Files.IndexOf(file) > 0); }
         private bool CanMoveDown() { return SelectedFiles.Count > 0 && SelectedFiles.Any(file => Files.IndexOf(file) < Files.Count - 1); }
         private bool CanMergeDocs() { return Files.Count > 1; }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+        
     }
 }

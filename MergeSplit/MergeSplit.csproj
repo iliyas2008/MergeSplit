@@ -83,13 +83,25 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Commands\DelegateCommand.cs" />
+    <Compile Include="Models\SidebarItem.cs" />
+    <Compile Include="Models\SplitModel.cs" />
     <Compile Include="Utilities\AlphanumericComparer.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\SplitViewModel.cs" />
+    <Compile Include="ViewModels\ViewModelBase.cs" />
+    <Compile Include="Views\MergeUserControl.xaml.cs">
+      <DependentUpon>MergeUserControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SplitUserControl.xaml.cs">
+      <DependentUpon>SplitUserControl.xaml</DependentUpon>
+    </Compile>
     <Page Include="Views\MergeUserControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
@@ -99,11 +111,11 @@
     <Compile Include="Models\MergeModel.cs" />
     <Compile Include="ViewModels\MergeViewModel.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
-    <Compile Include="Views\MergeUserControl.xaml.cs">
-      <DependentUpon>MergeUserControl.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
     <Page Include="MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SplitUserControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -148,5 +160,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Images\ic_reset.png" />
+    <Resource Include="Images\ic_right_arrow.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

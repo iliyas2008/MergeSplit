@@ -6,17 +6,16 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace MergeSplit.Views
+namespace MergeSplit
 {
     /// <summary>
     /// Interaction logic for MergeUserControl.xaml
     /// </summary>
     public partial class MergeUserControl : UserControl
     {
-        private MergeViewModel _viewModel;
+        private MergeViewModel _viewModel; 
         public MergeUserControl()
         {
-            InitializeComponent();
             _viewModel = new MergeViewModel();
             DataContext = _viewModel;
         }
@@ -37,11 +36,12 @@ namespace MergeSplit.Views
         }
         public void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_viewModel != null)
-            {
-                _viewModel.SelectionChanged(lvFiles.SelectedItems);
-            }
-
+                if (_viewModel != null)
+                {
+                    _viewModel.SelectionChanged(lvFiles.SelectedItems);
+                }
+            
         }
+
     }
 }
