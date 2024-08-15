@@ -84,6 +84,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Commands\DelegateCommand.cs" />
+    <Compile Include="Models\ClientModel.cs" />
     <Compile Include="Models\SidebarItem.cs" />
     <Compile Include="Models\SplitModel.cs" />
     <Compile Include="Utilities\AlphanumericComparer.cs" />

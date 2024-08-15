@@ -8,6 +8,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using Break = DocumentFormat.OpenXml.Wordprocessing.Break;
+using Run = DocumentFormat.OpenXml.Wordprocessing.Run;
 
 namespace MergeSplit.ViewModels
 {
@@ -16,13 +18,19 @@ namespace MergeSplit.ViewModels
         private bool _isDefaultPathChecked = true;
         private bool _isFilePathEnabled=false;
         private bool _isOpenDirEnabled=false;
+        private ObservableCollection<string> _splitOptions;
         private string _selectedSplitOption;
         private string _prefix= "Chapter_";
         private string _filePath;
         private FileInfo fileInfo = null;
-        private ObservableCollection<FileDetails> _previewItems;
+        private ObservableCollection<string> _previewItems;
         private ObservableCollection<FileDetails> _splitFiles;
         private WordprocessingDocument _doc = null;
+        private bool _isNewgenChecked=true;
+        private bool _isFMChecked = true;
+        private bool _isIntroChecked = true;
+        private bool _isBMChecked = true;
+        private bool _isButtonEnabled = false;
         public bool IsDefaultPathChecked
         {
             get => _isDefaultPathChecked;
@@ -73,6 +81,15 @@ namespace MergeSplit.ViewModels
                 OnPropertyChanged();
             }
         }
+        public ObservableCollection<string> SplitOptions
+        {
+            get => _splitOptions;
+            set
+            {
+                _splitOptions = value;
+                OnPropertyChanged(nameof(SplitOptions));
+            }
+        }
         public string SelectedSplitOption
         {
             get => _selectedSplitOption;
@@ -85,16 +102,65 @@ namespace MergeSplit.ViewModels
                 }
             }
         }
-        public ObservableCollection<FileDetails> PreviewItems
+
+        public bool IsNewgenChecked
+        {
+            get => _isNewgenChecked;
+            set
+            {
+                _isNewgenChecked = value;
+                OnPropertyChanged(nameof(IsNewgenChecked));
+            }
+        }
+        public bool IsFMChecked
+        {
+            get => _isFMChecked;
+            set
+            {
+                _isFMChecked = value;
+                OnPropertyChanged(nameof(IsFMChecked));
+            }
+        }
+
+        public bool IsIntroChecked
+        {
+            get => _isIntroChecked;
+            set
+            {
+                _isIntroChecked = value;
+                OnPropertyChanged(nameof(IsIntroChecked));
+            }
+        }
+
+        public bool IsBMChecked
+        {
+            get => _isBMChecked;
+            set
+            {
+                _isBMChecked = value;
+                OnPropertyChanged(nameof(IsBMChecked));
+            }
+        }
+        public bool IsButtonEnabled
+        {
+            get => _isButtonEnabled;
+            set
+            {
+                _isButtonEnabled = value;
+                OnPropertyChanged(nameof(IsButtonEnabled));
+            }
+        }
+        public ObservableCollection<string> PreviewItems
         {
             get => _previewItems;
             set
             {
                 _previewItems = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(IsButtonEnabled));
             }
         }
-
+        
         public ObservableCollection<FileDetails> SplitFiles
         {
             get => _splitFiles;
@@ -120,12 +186,23 @@ namespace MergeSplit.ViewModels
             ResetCommand = new RelayCommand(param => Reset());
             OpenDirCommand = new RelayCommand(param => OpenDirectory());
             ChangePrefixCommand = new RelayCommand(param => ChangePrefix());
-            PreviewItems = new ObservableCollection<FileDetails>();
+            PreviewItems = new ObservableCollection<string>();
             SplitFiles = new ObservableCollection<FileDetails>();
 
-            SelectedSplitOption = "Section Break";
-        }
+            SplitOptions = new ObservableCollection<string> { "Section Break", "Page Break", "Heading 1 Style" };
+            SelectedSplitOption = SplitOptions[0]; // Default selected option
 
+        }
+        public ClientModel ToClientModel()
+        {
+            return new ClientModel
+            {
+                IsNewgen = IsNewgenChecked,
+                HasFM = IsFMChecked,
+                HasIntro = IsIntroChecked,
+                HasBM = IsBMChecked
+            };
+        }
         public void HandleFileDrop(string filePath)
         {
             string fileExtension = Path.GetExtension(filePath).ToLower();
@@ -169,58 +246,98 @@ namespace MergeSplit.ViewModels
                 System.Windows.MessageBox.Show($"Please select a split option.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-
-            switch (SelectedSplitOption)
+            switch (SelectedSplitOption.ToLower())
             {
-                case "Section Break":
-                    if (DocumentHasBreakOptions("section"))
+                case "section break":
+                    if (GetDocumentBreakOptions("section").SectionCount > 0)
                     {
-                        System.Windows.Forms.MessageBox.Show("There is a Section Break");
-                        //GenerateSectionBreakPreview();
+                        Console.WriteLine($"There is {GetDocumentBreakOptions("section").SectionCount} Section Breaks");
+
+                        if (IsNewgenChecked && !string.IsNullOrEmpty(FilePath))
+                        {
+                            GenerateSectionBreakPreview();
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show($"It is not Newgen Client.");
+                        }
+
                     }
                     else
                     {
                         System.Windows.MessageBox.Show($"There is no Section Break.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                     break;
-                case "Page Break":
-                    if (DocumentHasBreakOptions("page"))
+                case "page break":
+                    if (GetDocumentBreakOptions("page").PageBreakCount > 0)
                     {
-                        System.Windows.Forms.MessageBox.Show("There is a Page Break");//GeneratePageBreakPreview();
+                        Console.WriteLine($"There is {GetDocumentBreakOptions("page").PageBreakCount} Page Break");
+                        if (IsNewgenChecked && !string.IsNullOrEmpty(FilePath))
+                        {
+                            GeneratePageBreakPreview();
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show($"It is not Newgen Client.");
+                        }
+                        
                     }
                     else
                     {
-                        System.Windows.MessageBox.Show($"There is no Page Break.", "Error", MessageBoxButton.OK, MessageBoxImage.Error); 
+                        System.Windows.MessageBox.Show($"There is no Page Break.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                     break;
-                case "Heading 1 Style":
-                    if (DocumentHasBreakOptions("heading"))
+                case "heading 1 style":
+                    if (GetDocumentBreakOptions("heading").HeadingCount > 0)
                     {
-                        System.Windows.Forms.MessageBox.Show("There is a Heading 1 Style");//GenerateHeading1StylePreview();
+                        Console.WriteLine($"There is {GetDocumentBreakOptions("heading").HeadingCount} Heading 1 Styles");
+                        //GenerateHeading1StylePreview();
                     }
                     else
                     {
-                        System.Windows.MessageBox.Show($"There is no Heading 1 Style.", "Error", MessageBoxButton.OK, MessageBoxImage.Error); 
+                        System.Windows.MessageBox.Show($"There is no Heading 1 Style.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                     break;
                 default:
-                    System.Windows.MessageBox.Show($"Unknown split option selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    if (GetDocumentBreakOptions("section").SectionCount > 0)
+                    {
+                        Console.WriteLine($"There is {GetDocumentBreakOptions("section").SectionCount} Section Breaks");
+
+                        if (IsNewgenChecked && !string.IsNullOrEmpty(FilePath))
+                        {
+                            GenerateSectionBreakPreview();
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show($"It is not Newgen Client.");
+                        }
+
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show($"There is no Section Break.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                     break;
             }
-
-            // Enable the split button if there are items to split
-            if (SplitFiles.Count > 0)
+            if (PreviewItems.Count > 0)
             {
-                // Notify the view to enable the split button
-                OnPropertyChanged(nameof(SplitFiles));
+                IsButtonEnabled = true;
             }
         }
 
-        private bool DocumentHasBreakOptions(string breakString)
+        public class DocumentBreakOptions
         {
+            public int SectionCount { get; set; }
+            public int PageBreakCount { get; set; }
+            public int HeadingCount { get; set; }
+        }
+        private DocumentBreakOptions GetDocumentBreakOptions(string breakString)
+        {
+            var result = new DocumentBreakOptions();
+
             if (string.IsNullOrWhiteSpace(FilePath) || !File.Exists(FilePath))
             {
-                return false;
+                return result;
             }
 
             try
@@ -228,23 +345,30 @@ namespace MergeSplit.ViewModels
                 using (_doc = WordprocessingDocument.Open(FilePath, false))
                 {
                     MainDocumentPart mainPart = _doc.MainDocumentPart;
+                    var documentBody = mainPart.Document.Body;
 
                     if (breakString.Contains("section"))
                     {
-                        var sections = mainPart.Document.Body.Elements<SectionProperties>();
-                        return sections.Any();
+                        // Count SectionProperties as section breaks
+                        result.SectionCount = documentBody
+                            .SelectMany(ox => ox.Descendants<SectionProperties>())
+                            .Count();
                     }
-                    else if (breakString.Contains("page"))
+
+                    if (breakString.Contains("page"))
                     {
-                        var paragraphs = mainPart.Document.Body.Elements<Paragraph>();
-                        return paragraphs.Any(paragraph => paragraph.Descendants<Run>()
-                            .Any(run => run.Descendants<Break>().Any(brk => brk.Type == BreakValues.Page)));
+                        // Count Page Breaks
+                        result.PageBreakCount = documentBody.Elements<Paragraph>()
+                            .SelectMany(p => p.Descendants<Run>())
+                            .SelectMany(run => run.Descendants<Break>())
+                            .Count(brk => brk.Type == BreakValues.Page);
                     }
-                    else if (breakString.Contains("heading"))
+
+                    if (breakString.Contains("heading"))
                     {
-                        var headingParagraphs = mainPart.Document.Body.Elements<Paragraph>()
-                            .Where(p => p.ParagraphProperties?.ParagraphStyleId?.Val == "Heading1");
-                        return headingParagraphs.Any();
+                        // Count Heading1 Paragraphs
+                        result.HeadingCount = documentBody.Elements<Paragraph>()
+                            .Count(p => p.ParagraphProperties?.ParagraphStyleId?.Val == "Heading1");
                     }
                 }
             }
@@ -253,9 +377,112 @@ namespace MergeSplit.ViewModels
                 System.Windows.MessageBox.Show($"Error processing the Word document: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            return false;
+            return result;
         }
-       
+
+        private void GenerateSectionBreakPreview()
+        {
+            if (string.IsNullOrEmpty(FilePath)) return;
+
+            int fmIndex = 1;
+            int bmIndex = 1;
+            int chapterIndex = 1;
+
+            PreviewItems.Clear(); // Assuming PreviewItems is similar to lvPreview.Items
+
+            try
+            {
+                using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(FilePath, false))
+                {
+                    var documentBody = wordDoc.MainDocumentPart.Document.Body;
+                    int sectionBreaks = documentBody.SelectMany(ox => ox.Descendants<SectionProperties>())
+                            .Count();
+
+                    for (int sectionNumber = 0; sectionNumber <= sectionBreaks; sectionNumber++)
+                    {
+                        string fileName = string.Empty;
+
+                        if (IsFMChecked && sectionNumber == 0)
+                        {
+                            fileName = $"FM_{fmIndex}.docx";
+                            fmIndex++;
+                        }
+                        else if (IsIntroChecked && sectionNumber == 1)
+                        {
+                            fileName = "Introduction.docx";
+                        }
+                        else if (IsBMChecked && sectionNumber == sectionBreaks)
+                        {
+                            fileName = $"BM_{bmIndex}.docx";
+                            bmIndex++;
+                        }
+                        else
+                        {
+                            fileName = $"Chapter_{chapterIndex}.docx";
+                            chapterIndex++;
+                        }
+
+                        PreviewItems.Add(fileName);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Generate SectionBreak Preview: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void GeneratePageBreakPreview()
+        {
+            if (string.IsNullOrEmpty(FilePath)) return;
+
+            int fmIndex = 1;
+            int bmIndex = 1;
+            int chapterIndex = 1; 
+            
+            PreviewItems.Clear();
+            try
+            {
+                using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(FilePath, false))
+                {
+                    var pageBreaks = wordDoc.MainDocumentPart.Document.Body.Elements<Paragraph>()
+                                .SelectMany(p => p.Descendants<Run>())
+                                .SelectMany(run => run.Descendants<Break>())
+                                .Count(brk => brk.Type == BreakValues.Page);
+
+                    for (int sectionNumber = 0; sectionNumber <= pageBreaks; sectionNumber++)
+                    {
+                        string fileName = string.Empty;
+
+                        if (IsFMChecked && sectionNumber == 0)
+                        {
+                            fileName = $"FM_{fmIndex}.docx";
+                            fmIndex++;
+                        }
+                        else if (IsIntroChecked && sectionNumber == 1)
+                        {
+                            fileName = "Introduction.docx";
+                        }
+                        else if (IsBMChecked && sectionNumber == pageBreaks)
+                        {
+                            fileName = $"BM_{bmIndex}.docx";
+                            bmIndex++;
+                        }
+                        else
+                        {
+                            fileName = $"Chapter_{chapterIndex}.docx";
+                            chapterIndex++;
+                        }
+
+                        PreviewItems.Add(fileName);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Generate PageBreak Preview: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         private void UpdateControls()
         {
             IsFilePathEnabled = !IsDefaultPathChecked;

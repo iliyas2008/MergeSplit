@@ -28,11 +28,8 @@
                        TextAlignment="Center"/>
                     </Border>
                     <TextBlock Text="Split By:" HorizontalAlignment="Left" Width="120" Height="22" Foreground="RoyalBlue"/>
-                    <ComboBox x:Name="cbSplitOptions" SelectedItem="{Binding SelectedSplitOption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        <ComboBox x:Name="cbSplitOptions" ItemsSource="{Binding SplitOptions}" SelectedItem="{Binding SelectedSplitOption, Mode=TwoWay}"
                   Width="152"  FontWeight="Bold" Foreground="DarkBlue">
-                            <ComboBoxItem Content="Section Break" IsSelected="True"/>
-                            <ComboBoxItem Content="Page Break"/>
-                            <ComboBoxItem Content="Heading 1 Style"/>
                         </ComboBox>
                     <TextBlock Text="Save To:" HorizontalAlignment="Left" Width="120"  Foreground="RoyalBlue" VerticalAlignment="Top" Height="21"/>
                     <StackPanel Orientation="Horizontal" Height="32">
@@ -52,25 +49,25 @@
                         </Button>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Height="22" Width="342">
-                        <CheckBox Name="chkNewgen" Content="Newgen" Width="75" IsChecked="True"/>
-                        <CheckBox Name="chkFM" Content="First FM" Width="75" IsChecked="True"/>
-                        <CheckBox Name="chkIntro" Content="Second Intro" Width="100" IsChecked="True"/>
-                        <CheckBox Name="chkBM" Content="Last BM" Width="75" IsChecked="True"/>
+                            <CheckBox Name="isNewgen" Content="Newgen" Width="75"  IsChecked="{Binding IsNewgenChecked, Mode=TwoWay}"/>
+                            <CheckBox Name="hasFM" Content="First FM" Width="75" IsChecked="{Binding IsFMChecked, Mode=TwoWay}"/>
+                            <CheckBox Name="hasIntro" Content="Second Intro" Width="100" IsChecked="{Binding IsIntroChecked, Mode=TwoWay}"/>
+                            <CheckBox Name="hasBM" Content="Last BM" Width="75" IsChecked="{Binding IsBMChecked, Mode=TwoWay}"/>
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
             <GroupBox Header="Preview" FontWeight="Bold" Width="395" Height="339" VerticalAlignment="Top" Foreground="Blue">
-                <ListView x:Name="lvPreview" ItemsSource="{Binding PreviewItems}" FontSize="14" Height="315" HorizontalAlignment="Left" Width="363" Margin="10,0,0,0">
+                <ListView x:Name="lvPreview" ItemsSource="{Binding PreviewItems}" FontSize="14" Height="315" HorizontalAlignment="Left" Width="363" Margin="10,0,0,0" AllowDrop="False" d:ItemsSource="{d:SampleData ItemCount=5}">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="File Name List" Width="400" DisplayMemberBinding="{Binding FileNames}"/>
+                            <GridViewColumn Header="File Name List" Width="400" DisplayMemberBinding="{Binding .}"/>
                         </GridView>
                     </ListView.View>
                 </ListView>
             </GroupBox>
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,15,0" >
-            <Button Name="btnSplit" Width="75" Height="23" Margin="5" IsEnabled="False">Split</Button>
+                <Button Name="btnSplit" Width="75" Height="23" Margin="5" IsEnabled="{Binding IsButtonEnabled}">Split</Button>
             <Button Name="btnCancel" Command="{Binding CloseCommand}" Width="75" Height="23" Margin="5">Cancel</Button>
         </StackPanel>
         </StackPanel>
